@@ -26,8 +26,15 @@
     name: docker-ce
     state: latest
 
-- name: Install docker-compose
+- name: Install pip
   apt:
+    name: "{{ item }}"
+  with_items:
+    - python-pip
+  when: docker_compose
+
+- name: Install docker-compose
+  pip:
     name: docker-compose
     state: latest
   when: docker_compose
