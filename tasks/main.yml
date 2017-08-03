@@ -30,4 +30,4 @@
   apt:
     name: docker-compose
     state: latest
-  when: docker-compose
+  when: "docker-compose"
