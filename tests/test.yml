@@ -1,6 +1,19 @@
 ---
 
 - hosts: localhost
-  remote_user: root
+  vars:
+    docker_containers:
+      nginx:
+        image: nginx
+        ports: 80:80
+    docker_services:
+      nginx:
+        definition:
+          version: '2'
+          services:
+            web:
+              image: nginx
+              ports:
+                - 81:80
   roles:
     - ansible-role-docker

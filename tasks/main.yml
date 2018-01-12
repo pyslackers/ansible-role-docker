@@ -4,37 +4,75 @@
   apt:
     name: "{{ item }}"
   with_items:
-    - apt-transport-https
-    - ca-certificates
-    - curl
     - gnupg2
-    - software-properties-common
+    - apt-transport-https
 
-- name: Trust docker's key
+- name: Trust docker repo key
   become: true
   apt_key:
     id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
-    url: https://download.docker.com/linux/debian/gpg
+    url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
     state: present
 
 - name: Add docker's apt repository
   apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+    repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    state: present
 
-- name: Install docker
-  apt:
-    name: docker-ce
-    state: latest
-
-- name: Install pip
+- name: Install docker & pip
   apt:
     name: "{{ item }}"
+    state: latest
   with_items:
+    - docker-ce
     - python-pip
-  when: docker_compose
+    - python3-pip
+
+- name: Update pip
+  pip:
+    name: pip
+    state: latest
+  when: ansible_distribution_release == 'jessie'
 
 - name: Install docker-compose
   pip:
     name: docker-compose
     state: latest
-  when: docker_compose
+
+- name: Enable docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Configure docker containers
+  docker_container:
+    name: "{{ item.key }}"
+    image: "{{ item.value.image }}"
+    command: "{{ item.value.command | default(omit) }}"
+    entrypoint: "{{ item.value.entrypoint | default(omit) }}"
+    state: "{{ item.value.state | default('started') }}"
+    ports: "{{ item.value.ports | default(omit) }}"
+    exposed_ports: "{{ item.value.exposed_ports | default(omit) }}"
+    links: "{{ item.value.links | default(omit) }}"
+    devices: "{{ item.value.devices | default(omit) }}"
+    networks: "{{ item.value.networks | default(omit) }}"
+    volumes: "{{ item.value.volumes | default(omit) }}"
+    volumes_from: "{{ item.value.volumes_from | default(omit) }}"
+    env: "{{ item.value.env | default(omit) }}"
+    env_file: "{{ item.value.env_file | default(omit) }}"
+    pull: "{{ item.value.pull | default(omit) }}"
+    restart_policy: "{{ item.value.restart_policy | default(omit) }}"
+    working_dir: "{{ item.value.working_dir | default(omit) }}"
+  with_dict: "{{ docker_containers }}"
+
+- name: Configure docker services
+  docker_service:
+    project_name: "{{ item.key }}"
+    project_src: "{{ item.value.src | default(omit) }}"
+    definition: "{{ item.value.definition | default(omit) }}"
+    scale: "{{ item.value.scale | default(omit) }}"
+    build: "{{ item.value.build | default(omit) }}"
+    pull: "{{ item.value.pull | default(omit) }}"
+    state: present
+  with_dict: "{{ docker_services }}"
