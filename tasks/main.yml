@@ -65,6 +65,8 @@
     restart_policy: "{{ item.value.restart_policy | default(omit) }}"
     working_dir: "{{ item.value.working_dir | default(omit) }}"
   with_dict: "{{ docker_containers }}"
+  loop_control:
+    label: "{{ item.key }}"
 
 - name: Configure docker services
   docker_service:
@@ -76,3 +78,5 @@
     pull: "{{ item.value.pull | default(omit) }}"
     state: present
   with_dict: "{{ docker_services }}"
+  loop_control:
+    label: "{{ item.key }}"
