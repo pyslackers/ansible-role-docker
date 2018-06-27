@@ -2,3 +2,5 @@
 
 docker_containers: {}
 docker_services : {}
+
+python_version: 3
