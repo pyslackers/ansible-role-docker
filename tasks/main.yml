@@ -19,14 +19,25 @@
     repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
     state: present
 
-- name: Install docker & pip
+- name: Install docker & python3-pip
   apt:
     name: "{{ item }}"
     state: latest
   with_items:
-    - docker-ce
-    - python-pip
+    - python3-setuptools
     - python3-pip
+    - docker-ce
+  when: ansible_python_version.startswith('3')
+
+- name: Install docker, python-pip & setuptools
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - python-setuptools
+    - python-pip
+    - docker-ce
+  when: ansible_python_version.startswith('2')
 
 - name: Update pip
   pip:
