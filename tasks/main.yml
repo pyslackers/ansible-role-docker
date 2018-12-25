@@ -2,10 +2,9 @@
 
 - name: Install docker dependencies
   apt:
-    name: "{{ item }}"
-  with_items:
-    - gnupg2
-    - apt-transport-https
+    name:
+      - gnupg2
+      - apt-transport-https
 
 - name: Trust docker repo key
   become: true
@@ -21,22 +20,21 @@
 
 - name: Install docker & python3-pip
   apt:
-    name: "{{ item }}"
+    name:
+      - python3-setuptools
+      - python3-pip
+      - docker-ce
     state: latest
-  with_items:
-    - python3-setuptools
-    - python3-pip
-    - docker-ce
   when: ansible_python_version.startswith('3')
 
 - name: Install docker, python-pip & setuptools
   apt:
-    name: "{{ item }}"
+    name:
+      - python-setuptools
+      - python-pip
+      - docker-ce
     state: latest
-  with_items:
-    - python-setuptools
-    - python-pip
-    - docker-ce
+
   when: ansible_python_version.startswith('2')
 
 - name: Update pip
